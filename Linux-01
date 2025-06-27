@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Access Control Lesson</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00f5ff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .lesson-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .lesson-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+        }
+        
+        .lesson-section h2 {
+            color: #00f5ff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid rgba(0, 245, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .terminal {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: #21262d;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .terminal::after {
+            content: '● ● ●';
+            position: absolute;
+            top: 8px;
+            left: 15px;
+            color: #ff5f56;
+            font-size: 12px;
+            letter-spacing: 5px;
+        }
+        
+        .terminal-content {
+            margin-top: 20px;
+            color: #58a6ff;
+        }
+        
+        .command {
+            color: #7ee787;
+            font-weight: bold;
+        }
+        
+        .output {
+            color: #f0f6fc;
+            margin: 5px 0;
+        }
+        
+        .error {
+            color: #ff7b72;
+        }
+        
+        .success {
+            color: #56d364;
+        }
+        
+        .interactive-terminal {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            min-height: 300px;
+        }
+        
+        .terminal-input {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .prompt {
+            color: #7ee787;
+            margin-right: 10px;
+        }
+        
+        input[type="text"] {
+            background: transparent;
+            border: none;
+            color: #f0f6fc;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            flex: 1;
+            outline: none;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #00f5ff, #0099cc);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 245, 255, 0.4);
+            background: linear-gradient(45deg, #0099cc, #00f5ff);
+        }
+        
+        .quiz {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .file-permissions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .permission-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .permission-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 5px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: linear-gradient(45deg, #00f5ff, #0099cc);
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00f5ff, #ff6b6b);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐧 Linux Access Control Mastery</h1>
+            <p>Master login, file permissions, and password management in Linux</p>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('login')">Login & Authentication</div>
+            <div class="tab" onclick="showTab('files')">File Permissions</div>
+            <div class="tab" onclick="showTab('passwords')">Password Management</div>
+            <div class="tab" onclick="showTab('practice')">Interactive Practice</div>
+        </div>
+
+        <div id="login" class="tab-content active">
+            <div class="lesson-section">
+                <h2>🔐 Linux Login System</h2>
+                <p>Linux is a multi-user system where authentication is crucial for security. Let's explore how login works:</p>
+                
+                <div class="terminal">
+                    <div class="terminal-content">
+                        <div class="command">$ ssh user@server.com</div>
+                        <div class="output">Password: ********</div>
+                        <div class="success">Welcome to Ubuntu 22.04 LTS</div>
+                        <div class="success">Last login: Fri Jun 27 10:30:45 2025</div>
+                        <div class="command">user@server:~$ whoami</div>
+                        <div class="output">user</div>
+                        <div class="command">user@server:~$ id</div>
+                        <div class="output">uid=1000(user) gid=1000(user) groups=1000(user),4(adm),24(cdrom),27(sudo)</div>
+                    </div>
+                </div>
+
+                <h3>Key Authentication Commands:</h3>
+                <div class="file-permissions">
+                    <div class="permission-card">
+                        <h4>whoami</h4>
+                        <p>Shows current username</p>
+                        <code>$ whoami</code>
+                    </div>
+                    <div class="permission-card">
+                        <h4>id</h4>
+                        <p>Shows user ID, group ID, and groups</p>
+                        <code>$ id username</code>
+                    </div>
+                    <div class="permission-card">
+                        <h4>su</h4>
+                        <p>Switch user (substitute user)</p>
+                        <code>$ su - username</code>
+                    </div>
+                    <div class="permission-card">
+                        <h4>sudo</h4>
+                        <p>Execute commands as another user</p>
+                        <code>$ sudo command</code>
+                    </div>
+                </div>
+
+                <div class="quiz">
+                    <h3>🤔 Quick Check:</h3>
+                    <p>What's the difference between 'su' and 'sudo'?</p>
+                    <button class="btn" onclick="showAnswer('su-sudo')">Show Answer</button>
+                    <div id="su-sudo" style="display:none; margin-top:10px;">
+                        <strong>Answer:</strong> 'su' switches to another user entirely, while 'sudo' runs a single command as another user (usually root) without switching users.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="files" class="tab-content">
+            <div class="lesson-section">
+                <h2>📁 File Permissions System</h2>
+                <p>Linux uses a sophisticated permission system to control file access. Every file has three types of permissions for three categories of users:</p>
+
+                <div class="terminal">
+                    <div class="terminal-content">
+                        <div class="command">$ ls -la</div>
+                        <div class="output">total 24</div>
+                        <div class="output">drwxr-xr-x 3 user user 4096 Jun 27 10:30 .</div>
+                        <div class="output">drwxr-xr-x 3 root root 4096 Jun 27 09:15 ..</div>
+                        <div class="output">-rw-r--r-- 1 user user  220 Jun 27 09:15 .bash_logout</div>
+                        <div class="output">-rw-r--r-- 1 user user 3771 Jun 27 09:15 .bashrc</div>
+                        <div class="output">-rwx------ 1 user user  807 Jun 27 10:30 secret.txt</div>
+                        <div class="output">-rw-rw-r-- 1 user group 1024 Jun 27 10:25 shared.txt</div>
+                    </div>
+                </div>
+
+                <h3>Permission Structure:</h3>
+                <div class="file-permissions">
+                    <div class="permission-card">
+                        <h4>Owner (User)</h4>
+                        <p>First 3 characters after file type</p>
+                        <p><strong>rwx</strong> = read, write, execute</p>
+                    </div>
+                    <div class="permission-card">
+                        <h4>Group</h4>
+                        <p>Next 3 characters</p>
+                        <p><strong>r-x</strong> = read, no write, execute</p>
+                    </div>
+                    <div class="permission-card">
+                        <h4>Others</h4>
+                        <p>Last 3 characters</p>
+                        <p><strong>r--</strong> = read only</p>
+                    </div>
+                </div>
+
+                <h3>Changing Permissions:</h3>
+                <div class="terminal">
+                    <div class="terminal-content">
+                        <div class="command">$ chmod 755 script.sh</div>
+                        <div class="output"># Owner: rwx (7), Group: r-x (5), Others: r-x (5)</div>
+                        <div class="command">$ chmod u+x file.txt</div>
+                        <div class="output"># Add execute permission for user</div>
+                        <div class="command">$ chmod g-w shared.txt</div>
+                        <div class="output"># Remove write permission for group</div>
+                        <div class="command">$ chown user:group file.txt</div>
+                        <div class="output"># Change owner and group</div>
+                    </div>
+                </div>
+
+                <div class="permission-card">
+                    <h4>🔢 Numeric Permissions:</h4>
+                    <p><strong>4</strong> = Read (r)</p>
+                    <p><strong>2</strong> = Write (w)</p>
+                    <p><strong>1</strong> = Execute (x)</p>
+                    <p><strong>7</strong> = rwx (4+2+1)</p>
+                    <p><strong>6</strong> = rw- (4+2)</p>
+                    <p><strong>5</strong> = r-x (4+1)</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="passwords" class="tab-content">
+            <div class="lesson-section">
+                <h2>🔑 Password Management</h2>
+                <p>Proper password management is essential for system security:</p>
+
+                <div class="terminal">
+                    <div class="terminal-content">
+                        <div class="command">$ passwd</div>
+                        <div class="output">Changing password for user.</div>
+                        <div class="output">Current password: </div>
+                        <div class="output">New password: </div>
+                        <div class="output">Retype new password: </div>
+                        <div class="success">passwd: password updated successfully</div>
+                        <div class="command">$ sudo passwd username</div>
+                        <div class="output"># Change another user's password (admin only)</div>
+                    </div>
+                </div>
+
+                <h3>Password Files & Security:</h3>
+                <div class="file-permissions">
+                    <div class="permission-card">
+                        <h4>/etc/passwd</h4>
+                        <p>User account information</p>
+                        <p>World-readable but doesn't contain passwords</p>
+                    </div>
+                    <div class="permission-card">
+                        <h4>/etc/shadow</h4>
+                        <p>Encrypted passwords and account aging info</p>
+                        <p>Only readable by root</p>
+                    </div>
+                    <div class="permission-card">
+                        <h4>/etc/group</h4>
+                        <p>Group information</p>
+                        <p>Defines user groups and memberships</p>
+                    </div>
+                </div>
+
+                <div class="terminal">
+                    <div class="terminal-content">
+                        <div class="command">$ sudo cat /etc/shadow | head -3</div>
+                        <div class="output">root:$6$random$hashValue:18800:0:99999:7:::</div>
+                        <div class="output">daemon:*:18800:0:99999:7:::</div>
+                        <div class="output">user:$6$salt$hashedPassword:18800:0:99999:7:::</div>
+                        <div class="command">$ chage -l username</div>
+                        <div class="output">Last password change: Jun 27, 2025</div>
+                        <div class="output">Password expires: never</div>
+                        <div class="output">Account expires: never</div>
+                    </div>
+                </div>
+
+                <h3>Advanced User Management:</h3>
+                <div class="terminal">
+                    <div class="terminal-content">
+                        <div class="command">$ sudo useradd -m -s /bin/bash newuser</div>
+                        <div class="output"># Create new user with home directory</div>
+                        <div class="command">$ sudo usermod -aG sudo newuser</div>
+                        <div class="output"># Add user to sudo group</div>
+                        <div class="command">$ sudo userdel -r olduser</div>
+                        <div class="output"># Delete user and home directory</div>
+                        <div class="command">$ groups username</div>
+                        <div class="output">username : username sudo adm cdrom</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="practice" class="tab-content">
+            <div class="lesson-section">
+                <h2>🎯 Interactive Practice Terminal</h2>
+                <p>Practice your Linux commands in this simulated terminal:</p>
+                
+                <div class="interactive-terminal" id="practiceTerminal">
+                    <div id="terminalOutput">
+                        <div class="success">Welcome to Linux Practice Terminal!</div>
+                        <div class="output">Try commands like: whoami, ls -la, chmod, passwd --help</div>
+                        <div class="output">Type 'help' for available commands or 'clear' to clear screen</div>
+                    </div>
+                    <div class="terminal-input">
+                        <span class="prompt">student@linux:~$</span>
+                        <input type="text" id="commandInput" placeholder="Enter your command..." autofocus>
+                    </div>
+                </div>
+                
+                <div class="quiz">
+                    <h3>🏆 Challenge Exercises:</h3>
+                    <ol>
+                        <li>Create a file with read-only permissions for everyone</li>
+                        <li>Change a file's owner and group</li>
+                        <li>Set permissions so only the owner can read and write</li>
+                        <li>Check your current user ID and groups</li>
+                    </ol>
+                    <button class="btn" onclick="showSolutions()">Show Solutions</button>
+                    <div id="solutions" style="display:none; margin-top:15px;">
+                        <p><strong>Solutions:</strong></p>
+                        <p>1. <code>touch readonly.txt && chmod 444 readonly.txt</code></p>
+                        <p>2. <code>sudo chown newowner:newgroup filename</code></p>
+                        <p>3. <code>chmod 600 privatefile.txt</code></p>
+                        <p>4. <code>id && groups</code></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProgress = 0;
+        const totalSteps = 4;
+        
+        // Simulated file system
+        const fileSystem = {
+            'testfile.txt': { permissions: '644', owner: 'student', group: 'student', content: 'Hello World!' },
+            'script.sh': { permissions: '755', owner: 'student', group: 'student', content: '#!/bin/bash\necho "Hello"' },
+            'secret.txt': { permissions: '600', owner: 'student', group: 'student', content: 'Top secret data' }
+        };
+        
+        const currentUser = 'student';
+        const currentGroups = ['student', 'users'];
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Update progress
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            currentProgress = Math.min(currentProgress + 25, 100);
+            document.getElementById('progressBar').style.width = currentProgress + '%';
+        }
+        
+        function showAnswer(id) {
+            const element = document.getElementById(id);
+            element.style.display = element.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function showSolutions() {
+            const solutions = document.getElementById('solutions');
+            solutions.style.display = solutions.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Interactive terminal functionality
+        document.getElementById('commandInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeCommand(this.value);
+                this.value = '';
+            }
+        });
+        
+        function executeCommand(command) {
+            const output = document.getElementById('terminalOutput');
+            const commandDiv = document.createElement('div');
+            commandDiv.innerHTML = `<span class="prompt">student@linux:~$</span> <span class="command">${command}</span>`;
+            output.appendChild(commandDiv);
+            
+            const resultDiv = document.createElement('div');
+            const result = processCommand(command.trim());
+            resultDiv.innerHTML = result;
+            output.appendChild(resultDiv);
+            
+            // Scroll to bottom
+            document.getElementById('practiceTerminal').scrollTop = document.getElementById('practiceTerminal').scrollHeight;
+        }
+        
+        function processCommand(cmd) {
+            const parts = cmd.split(' ');
+            const command = parts[0];
+            const args = parts.slice(1);
+            
+            switch(command) {
+                case 'help':
+                    return `<div class="output">Available commands:</div>
+                            <div class="output">whoami, id, ls, chmod, chown, passwd --help, groups, clear</div>
+                            <div class="output">touch, cat, echo</div>`;
+                
+                case 'clear':
+                    document.getElementById('terminalOutput').innerHTML = '';
+                    return '';
+                
+                case 'whoami':
+                    return `<div class="output">${currentUser}</div>`;
+                
+                case 'id':
+                    return `<div class="output">uid=1000(${currentUser}) gid=1000(${currentUser}) groups=1000(${currentUser}),1001(users)</div>`;
+                
+                case 'groups':
+                    return `<div class="output">${currentUser} : ${currentGroups.join(' ')}</div>`;
+                
+                case 'ls':
+                    if (args.includes('-la') || args.includes('-l')) {
+                        let result = '<div class="output">total 12</div>';
+                        for (const [filename, info] of Object.entries(fileSystem)) {
+                            const perms = formatPermissions(info.permissions);
+                            result += `<div class="output">-${perms} 1 ${info.owner} ${info.group} 1024 Jun 27 10:30 ${filename}</div>`;
+                        }
+                        return result;
+                    } else {
+                        return `<div class="output">${Object.keys(fileSystem).join('  ')}</div>`;
+                    }
+                
+                case 'chmod':
+                    if (args.length >= 2) {
+                        const permissions = args[0];
+                        const filename = args[1];
+                        if (fileSystem[filename]) {
+                            fileSystem[filename].permissions = permissions;
+                            return `<div class="success">Permissions changed for ${filename}</div>`;
+                        } else {
+                            return `<div class="error">chmod: cannot access '${filename}': No such file or directory</div>`;
+                        }
+                    }
+                    return `<div class="error">chmod: missing operand</div>`;
+                
+                case 'touch':
+                    if (args.length > 0) {
+                        const filename = args[0];
+                        fileSystem[filename] = { permissions: '644', owner: currentUser, group: currentUser, content: '' };
+                        return `<div class="success">Created ${filename}</div>`;
+                    }
+                    return `<div class="error">touch: missing file operand</div>`;
+                
+                case 'cat':
+                    if (args.length > 0) {
+                        const filename = args[0];
+                        if (fileSystem[filename]) {
+                            return `<div class="output">${fileSystem[filename].content}</div>`;
+                        } else {
+                            return `<div class="error">cat: ${filename}: No such file or directory</div>`;
+                        }
+                    }
+                    return `<div class="error">cat: missing file operand</div>`;
+                
+                case 'passwd':
+                    if (args.includes('--help')) {
+                        return `<div class="output">Usage: passwd [options] [username]</div>
+                                <div class="output">Change user password</div>
+                                <div class="output">Options:</div>
+                                <div class="output">  --help    display this help</div>`;
+                    }
+                    return `<div class="output">Changing password for ${currentUser}.</div>
+                            <div class="output">(This is a simulation - password not actually changed)</div>`;
+                
+                default:
+                    return `<div class="error">${command}: command not found</div>`;
+            }
+        }
+        
+        function formatPermissions(octal) {
+            const perms = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
+            const digits = octal.split('');
+            return digits.map(d => perms[parseInt(d)]).join('');
+        }
+    </script>
+</body>
+</html>
